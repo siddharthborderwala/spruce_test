@@ -1,11 +1,11 @@
-use core::api::{AttestationPayload, NonceResponse, VerifyResponse};
+use core::api::{NonceResponse, VerifyResponse};
 use core::config::Config;
 use core::crypto::{CryptoService, PrivateKey};
 use core::logging;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::error::Error;
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::{self, Write};
 use std::path::Path;
 use tracing::{debug, error, info};
@@ -87,16 +87,39 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let client = reqwest::Client::new();
 
     // Step 1: Get a nonce from the verifier
-    let nonce = match client.post(nonce_url).json("{}").send().await {
+    debug!("Requesting nonce from verifier");
+    let nonce = match client.post(nonce_url).json(&json!({})).send().await {
         Ok(response) => {
-            let nonce = response.json::<NonceResponse>().await?;
-            nonce.nonce
+            if !response.status().is_success() {
+                let error_msg = format!("Failed to get nonce: HTTP {}", response.status());
+                error!("{}", error_msg);
+                return Err(error_msg.into());
+            }
+
+            // Debug the response
+            let response_text = response.text().await?;
+            debug!("Received response: {}", response_text);
+
+            // Parse the response
+            match serde_json::from_str::<NonceResponse>(&response_text) {
+                Ok(nonce_response) => nonce_response.nonce,
+                Err(e) => {
+                    let error_msg = format!(
+                        "Failed to parse nonce response: {}, Response: {}",
+                        e, response_text
+                    );
+                    error!("{}", error_msg);
+                    return Err(error_msg.into());
+                }
+            }
         }
         Err(e) => {
             error!("Failed to get nonce: {}", e);
             return Err(e.into());
         }
     };
+
+    debug!("Received nonce: {}", nonce);
 
     // Step 2: Prompt user for a custom message or use default
     let message = prompt_for_message()?;
@@ -135,16 +158,40 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .await
     {
         Ok(response) => {
-            let verify_response = response.json::<VerifyResponse>().await?;
-            if verify_response.verified {
-                info!("✅ Verification successful: {}", verify_response.message);
-                println!(
-                    "✅ Successfully verified message: {}",
-                    verify_response.message
-                );
-            } else {
-                error!("❌ Verification failed: {}", verify_response.message);
-                println!("❌ Verification failed: {}", verify_response.message);
+            if !response.status().is_success() {
+                let error_msg = format!("Verification failed: HTTP {}", response.status());
+                error!("{}", error_msg);
+                println!("❌ {}", error_msg);
+                return Err(error_msg.into());
+            }
+
+            // Debug the response
+            let response_text = response.text().await?;
+            debug!("Received verification response: {}", response_text);
+
+            // Parse the response
+            match serde_json::from_str::<VerifyResponse>(&response_text) {
+                Ok(verify_response) => {
+                    if verify_response.verified {
+                        info!("✅ Verification successful: {}", verify_response.message);
+                        println!(
+                            "✅ Successfully verified message: {}",
+                            verify_response.message
+                        );
+                    } else {
+                        error!("❌ Verification failed: {}", verify_response.message);
+                        println!("❌ Verification failed: {}", verify_response.message);
+                    }
+                }
+                Err(e) => {
+                    let error_msg = format!(
+                        "Failed to parse verification response: {}, Response: {}",
+                        e, response_text
+                    );
+                    error!("{}", error_msg);
+                    println!("❌ {}", error_msg);
+                    return Err(error_msg.into());
+                }
             }
         }
         Err(e) => {
