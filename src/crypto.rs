@@ -1,4 +1,5 @@
 use chrono::{Duration, Utc};
+use jsonwebkey::{Key, PublicExponent, RsaPrivate, RsaPublic};
 use jsonwebtoken::{EncodingKey, Header, encode};
 use serde::{Deserialize, Serialize};
 use std::error::Error;
@@ -53,46 +54,32 @@ impl CryptoService {
         header
     }
 
-    /// Sign a payload with the given private key and header
-    pub fn sign_payload(
+    /// Overloaded version that accepts a JSON value for private key
+    pub fn sign_payload_json(
         payload: &AttestationPayload,
         private_key: &PrivateKey,
         header: &Header,
     ) -> Result<String, Box<dyn Error>> {
-        // Convert the private key to PEM format
-        let pem = format!(
-            "-----BEGIN RSA PRIVATE KEY-----\n{}\n-----END RSA PRIVATE KEY-----",
-            private_key.d
-        );
+        let key = private_key.clone();
+
+        // TODO: Implement this
+        let key = Key::RSA {
+            public: RsaPublic {
+                n: key.n.into(),
+                e: PublicExponent,
+            },
+            private: Some(RsaPrivate {
+                d: key.d.into(),
+                p: Some(key.p.as_bytes().into()),
+                q: Some(key.q.as_bytes().into()),
+                dp: Some(key.dp.as_bytes().into()),
+                dq: Some(key.dq.as_bytes().into()),
+                qi: Some(key.qi.as_bytes().into()),
+            }),
+        };
 
         // Create an encoding key from the PEM
-        let encoding_key = EncodingKey::from_rsa_pem(pem.as_bytes())?;
-
-        // Sign the payload
-        let token = encode(header, payload, &encoding_key)?;
-
-        Ok(token)
-    }
-
-    /// Overloaded version that accepts a JSON value for private key
-    pub fn sign_payload_json(
-        payload: &AttestationPayload,
-        private_key: &serde_json::Value,
-        header: &Header,
-    ) -> Result<String, Box<dyn Error>> {
-        // Extract the private key components
-        let d = private_key["d"]
-            .as_str()
-            .ok_or("Missing 'd' component in private key")?;
-
-        // Convert to PEM format
-        let pem = format!(
-            "-----BEGIN RSA PRIVATE KEY-----\n{}\n-----END RSA PRIVATE KEY-----",
-            d
-        );
-
-        // Create an encoding key from the PEM
-        let encoding_key = EncodingKey::from_rsa_pem(pem.as_bytes())?;
+        let encoding_key = EncodingKey::from_rsa_pem(key.to_pem().as_bytes())?;
 
         // Sign the payload
         let token = encode(header, payload, &encoding_key)?;

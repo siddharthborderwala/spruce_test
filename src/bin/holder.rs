@@ -133,7 +133,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     debug!("Added key ID '{}' to JWT header", key_id);
 
     // Sign the payload with the private key
-    let jwt = match CryptoService::sign_payload(&payload, &private_key, &header) {
+    let jwt = match CryptoService::sign_payload_json(&payload, &private_key, &header) {
         Ok(jwt) => {
             debug!("Created JWT: {}", jwt);
             debug!("Successfully signed the payload");
