@@ -1,6 +1,6 @@
-use core::logging;
 use josekit::jwk::Jwk;
 use serde_json::{Value, json};
+use spruce_test::logging;
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::PathBuf;

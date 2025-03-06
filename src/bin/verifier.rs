@@ -10,7 +10,7 @@ use std::net::SocketAddr;
 use tower_http::cors::{Any, CorsLayer};
 use tracing::{debug, error, info};
 
-use core::{
+use spruce_test::{
     api::{
         AttestationPayload, KeyInfo, KeyListResponse, PublicKey, RegisterKeyRequest,
         RegisterKeyResponse, VerifyRequest, VerifyResponse,

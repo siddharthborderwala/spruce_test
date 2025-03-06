@@ -32,7 +32,7 @@ tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 sqlx = { version = "0.8.3", features = ["runtime-tokio-rustls", "sqlite"] }
 
 [lib]
-name = "core"
+name = "spruce_test"
 path = "src/lib.rs"
 
 [[bin]]

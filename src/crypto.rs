@@ -107,6 +107,7 @@ impl CryptoService {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::Utc;
 
     #[test]
     fn test_create_attestation_payload() {
@@ -129,5 +130,32 @@ mod tests {
         assert_eq!(header.kid, Some(key_id.to_string()));
         assert_eq!(header.alg, jsonwebtoken::Algorithm::RS256);
         assert_eq!(header.typ, Some("JWT".to_string()));
+    }
+
+    #[test]
+    fn test_payload_expiration() {
+        // Test that the expiration time is set correctly
+        let nonce = "test-nonce";
+        let message = "test-message";
+
+        let payload = CryptoService::create_attestation_payload(nonce, message);
+
+        // Expiration should be 5 minutes from now
+        let now = Utc::now().timestamp();
+        let five_minutes = 5 * 60; // 5 minutes in seconds
+
+        // Allow for a small time difference due to test execution
+        assert!(payload.exp >= now + five_minutes - 2);
+        assert!(payload.exp <= now + five_minutes + 2);
+    }
+
+    #[test]
+    fn test_header_algorithm() {
+        // Test that the algorithm is set correctly
+        let key_id = "test-key-id";
+        let header = CryptoService::create_jwt_header(key_id);
+
+        // The algorithm should be RS256 for RSA with SHA-256
+        assert_eq!(header.alg, jsonwebtoken::Algorithm::RS256);
     }
 }

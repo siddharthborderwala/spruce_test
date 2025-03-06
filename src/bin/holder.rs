@@ -1,9 +1,11 @@
-use core::api::{NonceResponse, VerifyResponse};
-use core::config::Config;
-use core::crypto::{CryptoService, PrivateKey};
-use core::logging;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use spruce_test::{
+    api::{NonceResponse, VerifyResponse},
+    config::Config,
+    crypto::{CryptoService, PrivateKey},
+    logging,
+};
 use std::error::Error;
 use std::fs::File;
 use std::io::{self, Write};
