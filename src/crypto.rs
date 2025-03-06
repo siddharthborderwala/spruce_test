@@ -1,6 +1,10 @@
+use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 use chrono::{Duration, Utc};
-use jsonwebkey::{Key, PublicExponent, RsaPrivate, RsaPublic};
 use jsonwebtoken::{EncodingKey, Header, encode};
+use rsa::{
+    BigUint, RsaPrivateKey,
+    pkcs1::{EncodeRsaPrivateKey, LineEnding},
+};
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use tracing::debug;
@@ -20,6 +24,32 @@ pub struct PrivateKey {
     pub dq: String,
     pub qi: String,
     pub kid: String,
+}
+
+fn jwk_to_pem(jwk: &PrivateKey) -> Result<String, Box<dyn Error>> {
+    // Extract the RSA components from the JWK
+    let n = decode_base64_component(&jwk.n)?;
+    let e = decode_base64_component(&jwk.e)?;
+    let d = decode_base64_component(&jwk.d)?;
+    let p = decode_base64_component(&jwk.p)?;
+    let q = decode_base64_component(&jwk.q)?;
+
+    // Create RSA private key from components
+    let private_key = RsaPrivateKey::from_components(
+        BigUint::from_bytes_be(&n),
+        BigUint::from_bytes_be(&e),
+        BigUint::from_bytes_be(&d),
+        vec![BigUint::from_bytes_be(&p), BigUint::from_bytes_be(&q)],
+    )?;
+
+    // Convert to PEM format
+    let pem = private_key.to_pkcs1_pem(LineEnding::LF)?;
+
+    Ok(pem.to_string())
+}
+
+fn decode_base64_component(value: &String) -> Result<Vec<u8>, Box<dyn Error>> {
+    Ok(URL_SAFE_NO_PAD.decode(value)?)
 }
 
 /// Service for cryptographic operations
@@ -62,24 +92,10 @@ impl CryptoService {
     ) -> Result<String, Box<dyn Error>> {
         let key = private_key.clone();
 
-        // TODO: Implement this
-        let key = Key::RSA {
-            public: RsaPublic {
-                n: key.n.into(),
-                e: PublicExponent,
-            },
-            private: Some(RsaPrivate {
-                d: key.d.into(),
-                p: Some(key.p.as_bytes().into()),
-                q: Some(key.q.as_bytes().into()),
-                dp: Some(key.dp.as_bytes().into()),
-                dq: Some(key.dq.as_bytes().into()),
-                qi: Some(key.qi.as_bytes().into()),
-            }),
-        };
+        let pem = jwk_to_pem(&key)?;
 
         // Create an encoding key from the PEM
-        let encoding_key = EncodingKey::from_rsa_pem(key.to_pem().as_bytes())?;
+        let encoding_key = EncodingKey::from_rsa_pem(pem.as_bytes())?;
 
         // Sign the payload
         let token = encode(header, payload, &encoding_key)?;

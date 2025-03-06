@@ -1,2 +1,8 @@
 /target
 /keys
+*.db
+*.pem
+*.key
+*.crt
+*.csr
+*.jwk

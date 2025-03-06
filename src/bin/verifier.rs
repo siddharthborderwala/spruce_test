@@ -5,7 +5,7 @@ use axum::{
     response::IntoResponse,
     routing::{delete, get, post},
 };
-use base64::Engine;
+use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 use std::net::SocketAddr;
 use tower_http::cors::{Any, CorsLayer};
 use tracing::{debug, error, info};
@@ -164,8 +164,8 @@ fn extract_key_id_from_jwt(token: &str) -> Result<String, VerificationError> {
         ));
     }
 
-    // Decode the header using the non-deprecated API
-    let header_json = base64::engine::general_purpose::STANDARD
+    // serde_json base64 decode
+    let header_json = URL_SAFE_NO_PAD
         .decode(parts[0])
         .map_err(|_| VerificationError::RequestError("Invalid JWT header encoding".to_string()))?;
 

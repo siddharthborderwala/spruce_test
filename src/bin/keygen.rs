@@ -21,9 +21,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     info!("Generating RSA keypair with {} bits...", 2048);
 
-    // Generate RSA key pair using josekit
-    let jwk = Jwk::generate_rsa_key(2048)?;
-
     print!("Enter unique ID for key: ");
     std::io::stdout().flush()?;
     let mut key_id = String::new();
@@ -59,8 +56,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Err("Key ID already in use".into());
     }
 
-    // Set the key ID
-    let mut jwk = jwk;
+    // Generate RSA key pair using josekit
+    let mut jwk = Jwk::generate_rsa_key(2048)?;
     jwk.set_key_id(key_id);
 
     // Extract public key
