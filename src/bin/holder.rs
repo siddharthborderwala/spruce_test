@@ -85,7 +85,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     info!("Using key ID: {}", key_id);
 
-    let nonce_url = "http://127.0.0.1:3000/api/nonce";
+    let nonce_url = format!("{}/api/nonce", config.verifier_url);
     let client = reqwest::Client::new();
 
     // Step 1: Get a nonce from the verifier
@@ -147,7 +147,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
     };
 
-    let verify_url = "http://127.0.0.1:3000/api/verify";
+    let verify_url = format!("{}/api/verify", config.verifier_url);
 
     // Step 3: Send the signed payload to the verifier
     debug!("Sending attestation to verifier for verification");

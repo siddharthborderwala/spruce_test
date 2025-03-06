@@ -10,8 +10,8 @@ This project demonstrates a simple verifiable credentials system using RSA crypt
 
 ```
 ┌─────────────────────────────────────────┐      ┌─────────────────────────┐
-│              Client Side                │      │       Server Side        │
-│                                         │      │                          │
+│              Client Side                │      │       Server Side       │
+│                                         │      │                         │
 │  ┌─────────────┐       ┌─────────────┐  │      │     ┌─────────────┐     │
 │  │             │       │             │  │      │     │             │     │
 │  │   KeyGen    │──────▶│   Holder    │  │      │     │  Verifier   │     │
@@ -81,16 +81,17 @@ cargo run --bin verifier
 ```
 The verifier will start on http://127.0.0.1:3000 by default.
 
-2. **Generate Keys** (if not already done):
+2. **Generate Keys**:
 ```bash
 cargo run --bin keygen
 ```
-This will generate RSA key pairs in the configured keys directory.
+This will generate RSA key pairs in the configured keys directory. This will also register the public key with the verifier.
 
 3. **Run the Holder**:
 ```bash
 cargo run --bin holder
 ```
+
 The holder will:
 - Connect to the verifier
 - Request a nonce
@@ -103,8 +104,8 @@ The holder will:
 The application uses environment variables for configuration:
 
 - `KEYS_DIRECTORY` - Directory for storing keys (default: `./keys`)
-- `DB_PATH` - Path to the SQLite database (default: `./data.db`)
-- `LOG_LEVEL` - Logging level (default: `info`)
+- `DB_PATH` - Path to the SQLite database (default: `./storage.db`)
+- `VERIFIER_URL` - URL of the verifier service (default: `http://127.0.0.1:3000`)
 
 ## Security
 
