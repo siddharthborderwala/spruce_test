@@ -106,6 +106,10 @@ The application uses environment variables for configuration:
 - `DB_PATH` - Path to the SQLite database (default: `./data.db`)
 - `LOG_LEVEL` - Logging level (default: `info`)
 
+## Security
+
+Read the [SECURITY.md](SECURITY.md) file for more information.
+
 ## API Endpoints
 
 The verifier exposes the following API endpoints:
@@ -113,7 +117,6 @@ The verifier exposes the following API endpoints:
 - `POST /api/nonce` - Request a new nonce
 - `POST /api/keys` - Register a public key
 - `GET /api/keys` - List registered public keys
-- `GET /api/keys/:kid` - Get a specific public key
 - `DELETE /api/keys/:kid` - Delete/deactivate a public key
 - `POST /api/verify` - Verify a signed JWT to check private key ownerhip
 
