@@ -40,7 +40,7 @@ This project demonstrates a simple verifiable credentials system using RSA crypt
 ## Components
 
 ### Key Generator (`keygen`)
-Generates RSA key pairs and stores them in the configured keys directory.
+Generates RSA key pairs and stores them in the configured keys directory in JSON format.
 
 ### Holder (`holder`)
 - Requests a nonce from the verifier
@@ -79,7 +79,7 @@ cargo build
 ```bash
 cargo run --bin verifier
 ```
-The verifier will start on http://127.0.0.1:3000 by default.
+The verifier will start on http://127.0.0.1:3000 by default. It will store registerd public keys and used nonces in an sqlite database.
 
 2. **Generate Keys**:
 ```bash
