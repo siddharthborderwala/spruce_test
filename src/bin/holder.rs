@@ -175,14 +175,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
             match serde_json::from_str::<VerifyResponse>(&response_text) {
                 Ok(verify_response) => {
                     if verify_response.verified {
-                        info!("✅ Verification successful: {}", verify_response.message);
-                        println!(
-                            "✅ Successfully verified message: {}",
-                            verify_response.message
-                        );
+                        info!("✅ {}", verify_response.message);
                     } else {
-                        error!("❌ Verification failed: {}", verify_response.message);
-                        println!("❌ Verification failed: {}", verify_response.message);
+                        error!("❌ {}", verify_response.message);
                     }
                 }
                 Err(e) => {
@@ -190,15 +185,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         "Failed to parse verification response: {}, Response: {}",
                         e, response_text
                     );
-                    error!("{}", error_msg);
-                    println!("❌ {}", error_msg);
+                    error!("❌ {}", error_msg);
                     return Err(error_msg.into());
                 }
             }
         }
         Err(e) => {
-            error!("Failed to verify attestation: {}", e);
-            println!("❌ Verification failed: {}", e);
+            error!("❌ {}", e);
             return Err(e.into());
         }
     }
